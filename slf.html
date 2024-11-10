@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام تسجيل السلف</title>
+    <style>
+        /* تنسيق عام */
+        body {
+            background-color: #f2f7fa;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            direction: rtl;
+        }
+        .container {
+            background-color: #e0f4ff;
+            padding: 20px;
+            width: 700px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+        }
+        h1 {
+            text-align: center;
+            color: #006699;
+            font-size: 24px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        label {
+            color: #333;
+            font-weight: bold;
+        }
+        input, textarea {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #007acc;
+            font-size: 14px;
+        }
+        button {
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #005f99;
+        }
+        .shadow-box {
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .advance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .advance-table th, .advance-table td {
+            padding: 12px;
+            border: 1px solid #007acc;
+            text-align: center;
+        }
+        .advance-table th {
+            background-color: #007acc;
+            color: white;
+            font-weight: bold;
+        }
+        .edit-btn, .delete-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            transition: 0.2s;
+        }
+        .edit-btn {
+            background-color: #f7b42c;
+        }
+        .delete-btn {
+            background-color: #d9534f;
+        }
+        .edit-btn:hover {
+            background-color: #e09a17;
+        }
+        .delete-btn:hover {
+            background-color: #c9302c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>نظام تسجيل السلف</h1>
+        
+        <!-- حاوية إدخال السلف -->
+        <div class="form-container shadow-box">
+            <label for="employeeName">اسم العامل</label>
+            <input type="text" id="employeeName" placeholder="أدخل اسم العامل">
+            
+            <label for="advanceAmount">مبلغ السلفة</label>
+            <input type="number" id="advanceAmount" placeholder="أدخل مبلغ السلفة">
+            
+            <label for="advanceDetails">تفاصيل السلفة</label>
+            <textarea id="advanceDetails" placeholder="اكتب سبب السلفة أو تفاصيل إضافية"></textarea>
+            
+            <label for="advanceDate">التاريخ</label>
+            <input type="date" id="advanceDate">
+            
+            <button onclick="addAdvance()">حفظ السلفة</button>
+        </div>
+        
+        <!-- جدول عرض السلف -->
+        <div class="shadow-box" style="margin-top: 20px;">
+            <h2 style="text-align: center; color: #007acc;">السلف المسجلة</h2>
+            <table class="advance-table">
+                <thead>
+                    <tr>
+                        <th>اسم العامل</th>
+                        <th>مبلغ السلفة الإجمالي</th>
+                        <th>تفاصيل السلفة</th>
+                        <th>التاريخ</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="advanceTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // كائن لتخزين السلف
+        const advances = {};
+
+        // دالة لإضافة السلفة
+        function addAdvance() {
+            const employeeName = document.getElementById('employeeName').value;
+            const advanceAmount = parseFloat(document.getElementById('advanceAmount').value);
+            const advanceDetails = document.getElementById('advanceDetails').value;
+            const advanceDate = document.getElementById('advanceDate').value;
+
+            if (!employeeName || isNaN(advanceAmount) || !advanceDate) {
+                alert("يرجى إدخال جميع الحقول");
+                return;
+            }
+
+            if (advances[employeeName]) {
+                advances[employeeName].amount += advanceAmount;
+                advances[employeeName].details += " | " + advanceDetails;
+            } else {
+                advances[employeeName] = { amount: advanceAmount, details: advanceDetails, date: advanceDate };
+            }
+
+            document.getElementById('employeeName').value = '';
+            document.getElementById('advanceAmount').value = '';
+            document.getElementById('advanceDetails').value = '';
+            document.getElementById('advanceDate').value = '';
+
+            updateTable();
+        }
+
+        // دالة لتحديث الجدول
+        function updateTable() {
+            const tableBody = document.getElementById('advanceTableBody');
+            tableBody.innerHTML = '';
+
+            for (const employee in advances) {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${employee}</td>
+                    <td>${advances[employee].amount}</td>
+                    <td>${advances[employee].details}</td>
+                    <td>${advances[employee].date}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editAdvance('${employee}')">تعديل</button>
+                        <button class="delete-btn" onclick="deleteAdvance('${employee}')">حذف</button>
+                    </td>
+                `;
+
+                tableBody.appendChild(row);
+            }
+        }
+
+        // دالة لتعديل السلفة
+        function editAdvance(employeeName) {
+            const newAmount = parseFloat(prompt("أدخل المبلغ الجديد للسلفة:", advances[employeeName].amount));
+            const newDetails = prompt("أدخل تفاصيل جديدة للسلفة:", advances[employeeName].details);
+            if (!isNaN(newAmount) && newDetails !== null) {
+                advances[employeeName].amount = newAmount;
+                advances[employeeName].details = newDetails;
+                updateTable();
+            }
+        }
+
+        // دالة لحذف السلفة
+        function deleteAdvance(employeeName) {
+            if (confirm("هل أنت متأكد من حذف السلفة؟")) {
+                delete advances[employeeName];
+                updateTable();
+            }
+        }
+    </script>
+</body>
+</html>
